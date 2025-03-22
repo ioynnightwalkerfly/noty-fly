@@ -2,14 +2,26 @@ const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
 const fetch = require("node-fetch");
+const path = require("path");
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 const webhookUrl = "https://discord.com/api/webhooks/1352972685889638400/aAmcnD_FBJEq9aj7cmekEFDZTuoUCCoI1zmGsrDsN1d68eqwcqy3_fdFdQbqIjoStpnF";
 const busyFile = "busy.json";
 
 app.use(cors());
 app.use(express.json());
+
+// ✅ เสิร์ฟไฟล์ HTML, CSS, JS
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+app.get("/style.css", (req, res) => {
+  res.sendFile(path.join(__dirname, "style.css"));
+});
+app.get("/script.js", (req, res) => {
+  res.sendFile(path.join(__dirname, "script.js"));
+});
 
 // ✅ สร้าง busy.json ถ้ายังไม่มี
 if (!fs.existsSync(busyFile)) {
@@ -25,7 +37,6 @@ app.post("/busy", async (req, res) => {
       return res.status(400).json({ success: false, message: "ข้อมูลไม่ครบ" });
     }
 
-    // ✅ แปลงเวลาที่กรอกเป็นรูปแบบไทย
     const today = new Date();
     const [hour, minute] = until.split(":");
     const untilDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hour, minute);
@@ -38,12 +49,10 @@ app.post("/busy", async (req, res) => {
       hour12: false,
     });
 
-    // ✅ บันทึกลงไฟล์
     const current = JSON.parse(fs.readFileSync(busyFile));
     current.push({ name, location, reason, until, timestamp: new Date().toISOString() });
     fs.writeFileSync(busyFile, JSON.stringify(current, null, 2));
 
-    // ✅ ส่งแจ้งเตือน Discord
     await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
