@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>แจ้งสถานะไม่ว่าง | NotiAway</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-gray-100 font-sans p-6">
+
+  <div class="max-w-md mx-auto bg-white p-6 rounded shadow">
+    <h1 class="text-2xl font-bold mb-4 text-center">📢 แจ้งสถานะไม่ว่าง</h1>
+
+    <form id="busy-form" class="space-y-4">
+      <div>
+        <label class="block font-medium">👤 ชื่อของคุณ</label>
+        <input type="text" id="name" class="w-full border p-2 rounded" required />
+      </div>
+      <div>
+        <label class="block font-medium">📍 ไปที่ไหน</label>
+        <input type="text" id="location" class="w-full border p-2 rounded" required />
+      </div>
+      <div>
+        <label class="block font-medium">📝 ธุระอะไร</label>
+        <input type="text" id="reason" class="w-full border p-2 rounded" required />
+      </div>
+      <div>
+        <label class="block font-medium">⏰ ไม่ว่างถึงเวลา</label>
+        <input type="time" id="until" class="w-full border p-2 rounded" required />
+        <p id="until-preview" class="text-sm text-gray-600 mt-1"></p>
+      </div>
+      
+      <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+        ส่งแจ้งเตือน
+      </button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("busy-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value;
+      const location = document.getElementById("location").value;
+      const reason = document.getElementById("reason").value;
+      const until = document.getElementById("until").value;
+
+      if (!name || !location || !reason || !until) {
+        alert("⚠️ กรุณากรอกข้อมูลให้ครบ");
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:3001/busy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, location, reason, until }),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          alert("✅ ส่งแจ้งเตือนสำเร็จ!");
+          e.target.reset();
+        } else {
+          alert("❌ ส่งแจ้งเตือนไม่สำเร็จ");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("❌ เกิดข้อผิดพลาดในการส่งแจ้งเตือน");
+      }
+    });
+  </script>
+</body>
+</html>
